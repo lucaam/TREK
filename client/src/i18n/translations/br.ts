@@ -217,6 +217,7 @@ const br: Record<string, string | { name: string; category: string }[]> = {
   'settings.on': 'Ligado',
   'settings.off': 'Desligado',
   'settings.account': 'Conta',
+  'settings.about': 'Sobre',
   'settings.username': 'Nome de usuário',
   'settings.email': 'E-mail',
   'settings.role': 'Função',
@@ -1524,6 +1525,11 @@ const br: Record<string, string | { name: string; category: string }[]> = {
   'memories.error.toggleSharing': 'Falha ao atualizar compartilhamento',
   'undo.addPlace': 'Local adicionado',
   'undo.done': 'Desfeito: {action}',
+
+  // Redo
+  'redo.button': 'Redo',
+  'redo.tooltip': 'Redo: {action}',
+  'redo.done': 'Redone: {action}',
   'notifications.test.title': 'Notificação de teste de {actor}',
   'notifications.test.text': 'Esta é uma notificação de teste simples.',
   'notifications.test.booleanTitle': '{actor} solicita sua aprovação',

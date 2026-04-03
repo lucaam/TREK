@@ -242,6 +242,7 @@ const de: Record<string, string | { name: string; category: string }[]> = {
   'settings.mcp.toast.deleted': 'Token gelöscht',
   'settings.mcp.toast.deleteError': 'Token konnte nicht gelöscht werden',
   'settings.account': 'Konto',
+  'settings.about': 'Über',
   'settings.username': 'Benutzername',
   'settings.email': 'E-Mail',
   'settings.role': 'Rolle',
@@ -1526,6 +1527,11 @@ const de: Record<string, string | { name: string; category: string }[]> = {
   'memories.error.toggleSharing': 'Freigabe konnte nicht aktualisiert werden',
   'undo.addPlace': 'Ort hinzugefügt',
   'undo.done': 'Rückgängig gemacht: {action}',
+
+  // Redo
+  'redo.button': 'Redo',
+  'redo.tooltip': 'Redo: {action}',
+  'redo.done': 'Redone: {action}',
   'notifications.test.title': 'Testbenachrichtigung von {actor}',
   'notifications.test.text': 'Dies ist eine einfache Testbenachrichtigung.',
   'notifications.test.booleanTitle': '{actor} bittet um Ihre Zustimmung',

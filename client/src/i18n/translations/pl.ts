@@ -211,6 +211,7 @@ const pl: Record<string, string | { name: string; category: string }[]> = {
   'settings.mcp.toast.deleted': 'Token został usunięty',
   'settings.mcp.toast.deleteError': 'Nie udało się usunąć tokenu',
   'settings.account': 'Konto',
+  'settings.about': 'O aplikacji',
   'settings.username': 'Nazwa użytkownika',
   'settings.email': 'E-mail',
   'settings.role': 'Rola',
@@ -1506,6 +1507,11 @@ const pl: Record<string, string | { name: string; category: string }[]> = {
   'undo.importGoogleList': 'Import Google Maps',
   'undo.addPlace': 'Miejsce dodane',
   'undo.done': 'Cofnięto: {action}',
+
+  // Redo
+  'redo.button': 'Redo',
+  'redo.tooltip': 'Redo: {action}',
+  'redo.done': 'Redone: {action}',
   'notifications.title': 'Powiadomienia',
   'notifications.markAllRead': 'Oznacz wszystkie jako przeczytane',
   'notifications.deleteAll': 'Usuń wszystkie',

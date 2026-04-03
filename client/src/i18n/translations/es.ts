@@ -243,6 +243,7 @@ const es: Record<string, string> = {
   'settings.mcp.toast.deleted': 'Token eliminado',
   'settings.mcp.toast.deleteError': 'Error al eliminar el token',
   'settings.account': 'Cuenta',
+  'settings.about': 'Acerca de',
   'settings.username': 'Usuario',
   'settings.email': 'Correo',
   'settings.role': 'Rol',
@@ -1531,6 +1532,11 @@ const es: Record<string, string> = {
   'memories.error.toggleSharing': 'Error al actualizar el uso compartido',
   'undo.addPlace': 'Lugar agregado',
   'undo.done': 'Deshecho: {action}',
+
+  // Redo
+  'redo.button': 'Redo',
+  'redo.tooltip': 'Redo: {action}',
+  'redo.done': 'Redone: {action}',
   'notifications.test.title': 'Notificación de prueba de {actor}',
   'notifications.test.text': 'Esta es una notificación de prueba simple.',
   'notifications.test.booleanTitle': '{actor} solicita tu aprobación',

@@ -242,6 +242,7 @@ const en: Record<string, string | { name: string; category: string }[]> = {
   'settings.mcp.toast.deleted': 'Token deleted',
   'settings.mcp.toast.deleteError': 'Failed to delete token',
   'settings.account': 'Account',
+  'settings.about': 'About',
   'settings.username': 'Username',
   'settings.email': 'Email',
   'settings.role': 'Role',
@@ -1510,6 +1511,11 @@ const en: Record<string, string | { name: string; category: string }[]> = {
   'undo.importGoogleList': 'Google Maps import',
   'undo.addPlace': 'Place added',
   'undo.done': 'Undone: {action}',
+
+  // Redo
+  'redo.button': 'Redo',
+  'redo.tooltip': 'Redo: {action}',
+  'redo.done': 'Redone: {action}',
 
   // Notifications
   'notifications.title': 'Notifications',

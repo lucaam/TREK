@@ -194,6 +194,7 @@ const it: Record<string, string | { name: string; category: string }[]> = {
   'settings.mcp.toast.deleted': 'Token eliminato',
   'settings.mcp.toast.deleteError': 'Impossibile eliminare il token',
   'settings.account': 'Account',
+  'settings.about': 'Informazioni',
   'settings.username': 'Username',
   'settings.email': 'Email',
   'settings.role': 'Ruolo',
@@ -1505,6 +1506,11 @@ const it: Record<string, string | { name: string; category: string }[]> = {
   'undo.importGoogleList': 'Importazione Google Maps',
   'undo.addPlace': 'Luogo aggiunto',
   'undo.done': 'Annullato: {action}',
+
+  // Redo
+  'redo.button': 'Ripristina',
+  'redo.tooltip': 'Ripristina: {action}',
+  'redo.done': 'Ripristinato: {action}',
   // Notifications
   'notifications.title': 'Notifiche',
   'notifications.markAllRead': 'Segna tutto come letto',

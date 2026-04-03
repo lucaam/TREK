@@ -242,6 +242,7 @@ const fr: Record<string, string> = {
   'settings.mcp.toast.deleted': 'Token supprimé',
   'settings.mcp.toast.deleteError': 'Impossible de supprimer le token',
   'settings.account': 'Compte',
+  'settings.about': 'À propos',
   'settings.username': 'Nom d\'utilisateur',
   'settings.email': 'E-mail',
   'settings.role': 'Rôle',
@@ -1525,6 +1526,11 @@ const fr: Record<string, string> = {
   'memories.error.toggleSharing': 'Impossible de mettre à jour le partage',
   'undo.addPlace': 'Lieu ajouté',
   'undo.done': 'Annulé : {action}',
+
+  // Redo
+  'redo.button': 'Redo',
+  'redo.tooltip': 'Redo: {action}',
+  'redo.done': 'Redone: {action}',
   'notifications.test.title': 'Notification test de {actor}',
   'notifications.test.text': 'Ceci est une simple notification de test.',
   'notifications.test.booleanTitle': '{actor} demande votre approbation',

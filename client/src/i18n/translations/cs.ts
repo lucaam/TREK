@@ -195,6 +195,7 @@ const cs: Record<string, string | { name: string; category: string }[]> = {
   'settings.mcp.toast.deleted': 'Token smazán',
   'settings.mcp.toast.deleteError': 'Nepodařilo se smazat token',
   'settings.account': 'Účet',
+  'settings.about': 'O aplikaci',
   'settings.username': 'Uživatelské jméno',
   'settings.email': 'E-mail',
   'settings.role': 'Role',
@@ -1529,6 +1530,11 @@ const cs: Record<string, string | { name: string; category: string }[]> = {
   'memories.error.toggleSharing': 'Aktualizace sdílení se nezdařila',
   'undo.addPlace': 'Místo přidáno',
   'undo.done': 'Vráceno zpět: {action}',
+
+  // Redo
+  'redo.button': 'Redo',
+  'redo.tooltip': 'Redo: {action}',
+  'redo.done': 'Redone: {action}',
   'notifications.test.title': 'Testovací oznámení od {actor}',
   'notifications.test.text': 'Toto je jednoduché testovací oznámení.',
   'notifications.test.booleanTitle': '{actor} žádá o vaše schválení',

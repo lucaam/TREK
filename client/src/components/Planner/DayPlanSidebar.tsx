@@ -4,7 +4,7 @@ declare global { interface Window { __dragData: DragDataPayload | null } }
 
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import ReactDOM from 'react-dom'
-import { ChevronDown, ChevronRight, ChevronUp, Navigation, RotateCcw, ExternalLink, Clock, Pencil, GripVertical, Ticket, Plus, FileText, Check, Trash2, Info, MapPin, Star, Heart, Camera, Lightbulb, Flag, Bookmark, Train, Bus, Plane, Car, Ship, Coffee, ShoppingBag, AlertTriangle, FileDown, Lock, Hotel, Utensils, Users, Undo2 } from 'lucide-react'
+import { ChevronDown, ChevronRight, ChevronUp, Navigation, RotateCcw, ExternalLink, Clock, Pencil, GripVertical, Ticket, Plus, FileText, Check, Trash2, Info, MapPin, Star, Heart, Camera, Lightbulb, Flag, Bookmark, Train, Bus, Plane, Car, Ship, Coffee, ShoppingBag, AlertTriangle, FileDown, Lock, Hotel, Utensils, Users, Undo2, Redo2 } from 'lucide-react'
 
 const RES_ICONS = { flight: Plane, hotel: Hotel, restaurant: Utensils, train: Train, car: Car, cruise: Ship, event: Ticket, tour: Users, other: FileText }
 import { assignmentsApi, reservationsApi } from '../../api/client'
@@ -80,10 +80,13 @@ interface DayPlanSidebarProps {
   onAddReservation: () => void
   onNavigateToFiles?: () => void
   onExpandedDaysChange?: (expandedDayIds: Set<number>) => void
-  pushUndo?: (label: string, undoFn: () => Promise<void> | void) => void
+  pushUndo?: (label: string, undoFn: () => Promise<void> | void, redoFn?: () => Promise<void> | void) => void
   canUndo?: boolean
   lastActionLabel?: string | null
   onUndo?: () => void
+  canRedo?: boolean
+  lastRedoLabel?: string | null
+  onRedo?: () => void
 }
 
 const DayPlanSidebar = React.memo(function DayPlanSidebar({
@@ -101,6 +104,9 @@ const DayPlanSidebar = React.memo(function DayPlanSidebar({
   canUndo = false,
   lastActionLabel = null,
   onUndo,
+  canRedo = false,
+  lastRedoLabel = null,
+  onRedo,
 }: DayPlanSidebarProps) {
   const toast = useToast()
   const { t, language, locale } = useTranslation()
@@ -128,6 +134,7 @@ const DayPlanSidebar = React.memo(function DayPlanSidebar({
   const [lockedIds, setLockedIds] = useState(new Set())
   const [lockHoverId, setLockHoverId] = useState(null)
   const [undoHover, setUndoHover] = useState(false)
+  const [redoHover, setRedoHover] = useState(false)
   const [pdfHover, setPdfHover] = useState(false)
   const [icsHover, setIcsHover] = useState(false)
   const [dropTargetKey, _setDropTargetKey] = useState(null)
@@ -454,8 +461,11 @@ const DayPlanSidebar = React.memo(function DayPlanSidebar({
       if (prevAssignmentIds.length) {
         const capturedDayId = dayId
         const capturedPrevIds = prevAssignmentIds
+        const capturedNewIds = [...assignmentIds]
         pushUndo?.(t('undo.reorder'), async () => {
           await tripActions.reorderAssignments(tripId, capturedDayId, capturedPrevIds)
+        }, async () => {
+          await tripActions.reorderAssignments(tripId, capturedDayId, capturedNewIds)
         })
       }
     } catch (err: unknown) { toast.error(err instanceof Error ? err.message : 'Unknown error') }
@@ -621,13 +631,10 @@ const DayPlanSidebar = React.memo(function DayPlanSidebar({
 
   const toggleLock = (assignmentId) => {
     const prevLocked = new Set(lockedIds)
-    setLockedIds(prev => {
-      const next = new Set(prev)
-      if (next.has(assignmentId)) next.delete(assignmentId)
-      else next.add(assignmentId)
-      return next
-    })
-    pushUndo?.(t('undo.lock'), () => { setLockedIds(prevLocked) })
+    const nextLocked = new Set(lockedIds)
+    if (nextLocked.has(assignmentId)) nextLocked.delete(assignmentId); else nextLocked.add(assignmentId)
+    setLockedIds(nextLocked)
+    pushUndo?.(t('undo.lock'), () => { setLockedIds(prevLocked) }, () => { setLockedIds(new Set(nextLocked)) })
   }
 
   const handleOptimize = async () => {
@@ -664,8 +671,11 @@ const DayPlanSidebar = React.memo(function DayPlanSidebar({
     await onReorder(selectedDayId, result.map(a => a.id))
     toast.success(t('dayplan.toast.routeOptimized'))
     const capturedDayId = selectedDayId
+    const capturedOptimizedIds = result.map(a => a.id)
     pushUndo?.(t('undo.optimize'), async () => {
       await tripActions.reorderAssignments(tripId, capturedDayId, prevIds)
+    }, async () => {
+      await tripActions.reorderAssignments(tripId, capturedDayId, capturedOptimizedIds)
     })
   }
 
@@ -692,6 +702,8 @@ const DayPlanSidebar = React.memo(function DayPlanSidebar({
         .then(() => {
           pushUndo?.(t('undo.moveDay'), async () => {
             await tripActions.moveAssignment(tripId, Number(assignmentId), dayId, capturedFromDayId, capturedOrderIndex)
+          }, async () => {
+            await tripActions.moveAssignment(tripId, Number(assignmentId), capturedFromDayId, dayId)
           })
         })
         .catch((err: unknown) => toast.error(err instanceof Error ? err.message : 'Unknown error'))
@@ -857,6 +869,38 @@ const DayPlanSidebar = React.memo(function DayPlanSidebar({
                   border: '1px solid var(--border-faint, #e5e7eb)',
                 }}>
                   {canUndo && lastActionLabel ? t('undo.tooltip', { action: lastActionLabel }) : t('undo.button')}
+                </div>
+              )}
+            </div>
+          )}
+          {onRedo && (
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <button
+                onClick={onRedo}
+                disabled={!canRedo}
+                onMouseEnter={() => setRedoHover(true)}
+                onMouseLeave={() => setRedoHover(false)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 30, height: 30, borderRadius: 8,
+                  border: '1px solid var(--border-primary)', background: 'none',
+                  color: canRedo ? 'var(--text-primary)' : 'var(--border-primary)',
+                  cursor: canRedo ? 'pointer' : 'default', fontFamily: 'inherit',
+                  transition: 'color 0.15s, border-color 0.15s',
+                }}
+              >
+                <Redo2 size={14} strokeWidth={2} />
+              </button>
+              {redoHover && (
+                <div style={{
+                  position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+                  whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 200,
+                  background: 'var(--bg-card, white)', color: 'var(--text-primary, #111827)',
+                  fontSize: 11, fontWeight: 500, padding: '5px 10px',
+                  borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  border: '1px solid var(--border-faint, #e5e7eb)',
+                }}>
+                  {canRedo && lastRedoLabel ? t('redo.tooltip', { action: lastRedoLabel }) : t('redo.button')}
                 </div>
               )}
             </div>

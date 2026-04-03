@@ -242,6 +242,7 @@ const nl: Record<string, string> = {
   'settings.mcp.toast.deleted': 'Token verwijderd',
   'settings.mcp.toast.deleteError': 'Token verwijderen mislukt',
   'settings.account': 'Account',
+  'settings.about': 'Over',
   'settings.username': 'Gebruikersnaam',
   'settings.email': 'E-mail',
   'settings.role': 'Rol',
@@ -1525,6 +1526,11 @@ const nl: Record<string, string> = {
   'memories.error.toggleSharing': 'Delen bijwerken mislukt',
   'undo.addPlace': 'Locatie toegevoegd',
   'undo.done': 'Ongedaan gemaakt: {action}',
+
+  // Redo
+  'redo.button': 'Redo',
+  'redo.tooltip': 'Redo: {action}',
+  'redo.done': 'Redone: {action}',
   'notifications.test.title': 'Testmelding van {actor}',
   'notifications.test.text': 'Dit is een eenvoudige testmelding.',
   'notifications.test.booleanTitle': '{actor} vraagt om uw goedkeuring',

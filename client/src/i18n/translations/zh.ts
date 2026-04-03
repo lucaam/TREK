@@ -242,6 +242,7 @@ const zh: Record<string, string> = {
   'settings.mcp.toast.deleted': '令牌已删除',
   'settings.mcp.toast.deleteError': '删除令牌失败',
   'settings.account': '账户',
+  'settings.about': '关于',
   'settings.username': '用户名',
   'settings.email': '邮箱',
   'settings.role': '角色',
@@ -1525,6 +1526,11 @@ const zh: Record<string, string> = {
   'memories.error.toggleSharing': '更新共享设置失败',
   'undo.addPlace': '地点已添加',
   'undo.done': '已撤销：{action}',
+
+  // Redo
+  'redo.button': 'Redo',
+  'redo.tooltip': 'Redo: {action}',
+  'redo.done': 'Redone: {action}',
   'notifications.test.title': '来自 {actor} 的测试通知',
   'notifications.test.text': '这是一条简单的测试通知。',
   'notifications.test.booleanTitle': '{actor} 请求您的审批',

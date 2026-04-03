@@ -194,6 +194,7 @@ const hu: Record<string, string | { name: string; category: string }[]> = {
   'settings.mcp.toast.deleted': 'Token törölve',
   'settings.mcp.toast.deleteError': 'Nem sikerült törölni a tokent',
   'settings.account': 'Fiók',
+  'settings.about': 'Névjegy',
   'settings.username': 'Felhasználónév',
   'settings.email': 'E-mail',
   'settings.role': 'Szerepkör',
@@ -1526,6 +1527,11 @@ const hu: Record<string, string | { name: string; category: string }[]> = {
   'memories.error.toggleSharing': 'A megosztás frissítése sikertelen',
   'undo.addPlace': 'Hely hozzáadva',
   'undo.done': 'Visszavonva: {action}',
+
+  // Redo
+  'redo.button': 'Redo',
+  'redo.tooltip': 'Redo: {action}',
+  'redo.done': 'Redone: {action}',
   'notifications.test.title': 'Teszt értesítés {actor} részéről',
   'notifications.test.text': 'Ez egy egyszerű teszt értesítés.',
   'notifications.test.booleanTitle': '{actor} jóváhagyásodat kéri',

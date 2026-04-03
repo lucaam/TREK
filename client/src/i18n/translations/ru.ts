@@ -242,6 +242,7 @@ const ru: Record<string, string> = {
   'settings.mcp.toast.deleted': 'Токен удалён',
   'settings.mcp.toast.deleteError': 'Не удалось удалить токен',
   'settings.account': 'Аккаунт',
+  'settings.about': 'О приложении',
   'settings.username': 'Имя пользователя',
   'settings.email': 'Эл. почта',
   'settings.role': 'Роль',
@@ -1525,6 +1526,11 @@ const ru: Record<string, string> = {
   'memories.error.toggleSharing': 'Не удалось обновить настройки доступа',
   'undo.addPlace': 'Место добавлено',
   'undo.done': 'Отменено: {action}',
+
+  // Redo
+  'redo.button': 'Redo',
+  'redo.tooltip': 'Redo: {action}',
+  'redo.done': 'Redone: {action}',
   'notifications.test.title': 'Тестовое уведомление от {actor}',
   'notifications.test.text': 'Это простое тестовое уведомление.',
   'notifications.test.booleanTitle': '{actor} запрашивает подтверждение',

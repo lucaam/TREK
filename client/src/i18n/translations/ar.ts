@@ -247,6 +247,7 @@ const ar: Record<string, string | { name: string; category: string }[]> = {
   'settings.mcp.toast.deleted': 'تم حذف الرمز',
   'settings.mcp.toast.deleteError': 'فشل حذف الرمز',
   'settings.account': 'الحساب',
+  'settings.about': 'حول',
   'settings.username': 'اسم المستخدم',
   'settings.email': 'البريد الإلكتروني',
   'settings.role': 'الدور',
@@ -1529,6 +1530,11 @@ const ar: Record<string, string | { name: string; category: string }[]> = {
   'memories.error.toggleSharing': 'فشل تحديث إعدادات المشاركة',
   'undo.addPlace': 'تمت إضافة المكان',
   'undo.done': 'تم التراجع: {action}',
+
+  // Redo
+  'redo.button': 'Redo',
+  'redo.tooltip': 'Redo: {action}',
+  'redo.done': 'Redone: {action}',
   'notifications.test.title': 'إشعار تجريبي من {actor}',
   'notifications.test.text': 'هذا إشعار تجريبي بسيط.',
   'notifications.test.booleanTitle': 'يطلب منك {actor} الموافقة',
