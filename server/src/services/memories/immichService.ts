@@ -1,7 +1,9 @@
-import { db, canAccessTrip } from '../db/database';
-import { maybe_encrypt_api_key, decrypt_api_key } from './apiKeyCrypto';
-import { checkSsrf } from '../utils/ssrfGuard';
-import { writeAudit } from './auditLog';
+import { db } from '../../db/database';
+import { maybe_encrypt_api_key, decrypt_api_key } from '../apiKeyCrypto';
+import { checkSsrf } from '../../utils/ssrfGuard';
+import { writeAudit } from '../auditLog';
+import { addTripPhotos} from './unifiedService';
+import { getAlbumIdFromLink, updateSyncTimeForAlbumLink, Selection } from './helpersService';
 
 // ── Credentials ────────────────────────────────────────────────────────────
 
@@ -187,62 +189,9 @@ export async function searchPhotos(
   }
 }
 
-// ── Trip Photos ────────────────────────────────────────────────────────────
-
-export function listTripPhotos(tripId: string, userId: number) {
-  return db.prepare(`
-    SELECT tp.immich_asset_id, tp.user_id, tp.shared, tp.added_at,
-           u.username, u.avatar, u.immich_url
-    FROM trip_photos tp
-    JOIN users u ON tp.user_id = u.id
-    WHERE tp.trip_id = ?
-    AND (tp.user_id = ? OR tp.shared = 1)
-    ORDER BY tp.added_at ASC
-  `).all(tripId, userId);
-}
-
-export function addTripPhotos(
-  tripId: string,
-  userId: number,
-  assetIds: string[],
-  shared: boolean
-): number {
-  const insert = db.prepare(
-    'INSERT OR IGNORE INTO trip_photos (trip_id, user_id, immich_asset_id, shared) VALUES (?, ?, ?, ?)'
-  );
-  let added = 0;
-  for (const assetId of assetIds) {
-    const result = insert.run(tripId, userId, assetId, shared ? 1 : 0);
-    if (result.changes > 0) added++;
-  }
-  return added;
-}
-
-export function removeTripPhoto(tripId: string, userId: number, assetId: string) {
-  db.prepare('DELETE FROM trip_photos WHERE trip_id = ? AND user_id = ? AND immich_asset_id = ?')
-    .run(tripId, userId, assetId);
-}
-
-export function togglePhotoSharing(tripId: string, userId: number, assetId: string, shared: boolean) {
-  db.prepare('UPDATE trip_photos SET shared = ? WHERE trip_id = ? AND user_id = ? AND immich_asset_id = ?')
-    .run(shared ? 1 : 0, tripId, userId, assetId);
-}
 
 // ── Asset Info / Proxy ─────────────────────────────────────────────────────
 
-/**
- * Verify that requestingUserId can access a shared photo belonging to ownerUserId.
- * The asset must be shared (shared=1) and the requesting user must be a member of
- * the same trip that contains the photo.
- */
-export function canAccessUserPhoto(requestingUserId: number, ownerUserId: number, assetId: string): boolean {
-  const rows = db.prepare(`
-    SELECT tp.trip_id FROM trip_photos tp
-    WHERE tp.immich_asset_id = ? AND tp.user_id = ? AND tp.shared = 1
-  `).all(assetId, ownerUserId) as { trip_id: number }[];
-  if (rows.length === 0) return false;
-  return rows.some(row => !!canAccessTrip(String(row.trip_id), requestingUserId));
-}
 
 export async function getAssetInfo(
   userId: number,
@@ -387,8 +336,6 @@ export function createAlbumLink(
 }
 
 export function deleteAlbumLink(linkId: string, tripId: string, userId: number) {
-  db.prepare('DELETE FROM trip_photos WHERE album_link_id = ? AND trip_id = ? AND user_id = ?')
-    .run(linkId, tripId, userId);
   db.prepare('DELETE FROM trip_album_links WHERE id = ? AND trip_id = ? AND user_id = ?')
     .run(linkId, tripId, userId);
 }
@@ -398,15 +345,14 @@ export async function syncAlbumAssets(
   linkId: string,
   userId: number
 ): Promise<{ success?: boolean; added?: number; total?: number; error?: string; status?: number }> {
-  const link = db.prepare('SELECT * FROM trip_album_links WHERE id = ? AND trip_id = ? AND user_id = ?')
-    .get(linkId, tripId, userId) as any;
-  if (!link) return { error: 'Album link not found', status: 404 };
+  const response = getAlbumIdFromLink(tripId, linkId, userId);
+  if (!response.success) return { error: 'Album link not found', status: 404 };
 
   const creds = getImmichCredentials(userId);
   if (!creds) return { error: 'Immich not configured', status: 400 };
 
   try {
-    const resp = await fetch(`${creds.immich_url}/api/albums/${link.immich_album_id}`, {
+    const resp = await fetch(`${creds.immich_url}/api/albums/${response.data}`, {
       headers: { 'x-api-key': creds.immich_api_key, 'Accept': 'application/json' },
       signal: AbortSignal.timeout(15000),
     });
@@ -414,18 +360,17 @@ export async function syncAlbumAssets(
     const albumData = await resp.json() as { assets?: any[] };
     const assets = (albumData.assets || []).filter((a: any) => a.type === 'IMAGE');
 
-    const insert = db.prepare(
-      'INSERT OR IGNORE INTO trip_photos (trip_id, user_id, immich_asset_id, shared, album_link_id) VALUES (?, ?, ?, 1, ?)'
-    );
-    let added = 0;
-    for (const asset of assets) {
-      const r = insert.run(tripId, userId, asset.id, linkId);
-      if (r.changes > 0) added++;
-    }
+    const selection: Selection = {
+      provider: 'immich',
+      asset_ids: assets.map((a: any) => a.id),
+    };
 
-    db.prepare('UPDATE trip_album_links SET last_synced_at = CURRENT_TIMESTAMP WHERE id = ?').run(linkId);
+    const result = await addTripPhotos(tripId, userId, true, [selection]);
+    if ('error' in result) return { error: result.error.message, status: result.error.status };
 
-    return { success: true, added, total: assets.length };
+    updateSyncTimeForAlbumLink(linkId);
+
+    return { success: true, added: result.data.added, total: assets.length };
   } catch {
     return { error: 'Could not reach Immich', status: 502 };
   }
