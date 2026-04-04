@@ -89,7 +89,7 @@ export default function MemoriesPanel({ tripId, startDate, endDate }: MemoriesPa
 
   const loadAlbumLinks = async () => {
     try {
-      const res = await apiClient.get(`/integrations/memories/trips/${tripId}/album-links`)
+      const res = await apiClient.get(`/integrations/memories/unified/trips/${tripId}/album-links`)
       setAlbumLinks(res.data.links || [])
     } catch { setAlbumLinks([]) }
   }
@@ -98,7 +98,7 @@ export default function MemoriesPanel({ tripId, startDate, endDate }: MemoriesPa
     if (!provider) return
     setAlbumsLoading(true)
     try {
-      const res = await apiClient.get(`/integrations/${provider}/albums`)
+      const res = await apiClient.get(`/integrations/memories/${provider}/albums`)
       setAlbums(res.data.albums || [])
     } catch {
       setAlbums([])
@@ -120,7 +120,7 @@ export default function MemoriesPanel({ tripId, startDate, endDate }: MemoriesPa
     }
 
     try {
-      await apiClient.post(`/integrations/memories/trips/${tripId}/album-links`, {
+      await apiClient.post(`/integrations/memories/unified/trips/${tripId}/album-links`, {
         album_id: albumId,
         album_name: albumName,
         provider: selectedProvider,
@@ -128,7 +128,7 @@ export default function MemoriesPanel({ tripId, startDate, endDate }: MemoriesPa
       setShowAlbumPicker(false)
       await loadAlbumLinks()
       // Auto-sync after linking
-      const linksRes = await apiClient.get(`/integrations/memories/trips/${tripId}/album-links`)
+      const linksRes = await apiClient.get(`/integrations/memories/unified/trips/${tripId}/album-links`)
       const newLink = (linksRes.data.links || []).find((l: any) => l.album_id === albumId && l.provider === selectedProvider)
       if (newLink) await syncAlbum(newLink.id)
     } catch { toast.error(t('memories.error.linkAlbum')) }
@@ -136,7 +136,7 @@ export default function MemoriesPanel({ tripId, startDate, endDate }: MemoriesPa
 
   const unlinkAlbum = async (linkId: number) => {
     try {
-      await apiClient.delete(`/integrations/memories/trips/${tripId}/album-links/${linkId}`)
+      await apiClient.delete(`/integrations/memories/unified/trips/${tripId}/album-links/${linkId}`)
       loadAlbumLinks()
     } catch { toast.error(t('memories.error.unlinkAlbum')) }
   }
@@ -146,7 +146,7 @@ export default function MemoriesPanel({ tripId, startDate, endDate }: MemoriesPa
     if (!targetProvider) return
     setSyncing(linkId)
     try {
-      await apiClient.post(`/integrations/${targetProvider}/trips/${tripId}/album-links/${linkId}/sync`)
+      await apiClient.post(`/integrations/memories/${targetProvider}/trips/${tripId}/album-links/${linkId}/sync`)
       await loadAlbumLinks()
       await loadPhotos()
     } catch { toast.error(t('memories.error.syncAlbum')) }
@@ -175,7 +175,7 @@ export default function MemoriesPanel({ tripId, startDate, endDate }: MemoriesPa
 
   const loadPhotos = async () => {
     try {
-      const photosRes = await apiClient.get(`/integrations/memories/trips/${tripId}/photos`)
+      const photosRes = await apiClient.get(`/integrations/memories/unified/trips/${tripId}/photos`)
       setTripPhotos(photosRes.data.photos || [])
     } catch {
       setTripPhotos([])
@@ -257,7 +257,7 @@ export default function MemoriesPanel({ tripId, startDate, endDate }: MemoriesPa
         setPickerPhotos([])
         return
       }
-      const res = await apiClient.post(`/integrations/${provider.id}/search`, {
+      const res = await apiClient.post(`/integrations/memories/${provider.id}/search`, {
         from: useDate && startDate ? startDate : undefined,
         to: useDate && endDate ? endDate : undefined,
       })
@@ -296,7 +296,7 @@ export default function MemoriesPanel({ tripId, startDate, endDate }: MemoriesPa
         groupedByProvider.set(provider, list)
       }
 
-      await apiClient.post(`/integrations/memories/trips/${tripId}/photos`, {
+      await apiClient.post(`/integrations/memories/unified/trips/${tripId}/photos`, {
         selections: [...groupedByProvider.entries()].map(([provider, asset_ids]) => ({ provider, asset_ids })),
         shared: true,
       })
@@ -310,7 +310,7 @@ export default function MemoriesPanel({ tripId, startDate, endDate }: MemoriesPa
 
   const removePhoto = async (photo: TripPhoto) => {
     try {
-      await apiClient.delete(`/integrations/memories/trips/${tripId}/photos`, {
+      await apiClient.delete(`/integrations/memories/unified/trips/${tripId}/photos`, {
         data: {
           asset_id: photo.asset_id,
           provider: photo.provider,
@@ -324,7 +324,7 @@ export default function MemoriesPanel({ tripId, startDate, endDate }: MemoriesPa
 
   const toggleSharing = async (photo: TripPhoto, shared: boolean) => {
     try {
-      await apiClient.put(`/integrations/memories/trips/${tripId}/photos/sharing`, {
+      await apiClient.put(`/integrations/memories/unified/trips/${tripId}/photos/sharing`, {
         shared,
         asset_id: photo.asset_id,
         provider: photo.provider,
@@ -338,7 +338,7 @@ export default function MemoriesPanel({ tripId, startDate, endDate }: MemoriesPa
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   const thumbnailBaseUrl = (photo: TripPhoto) =>
-    `/api/integrations/${photo.provider}/assets/${tripId}/${photo.asset_id}/${photo.user_id}/thumbnail`
+    `/api/integrations/memories/${photo.provider}/assets/${tripId}/${photo.asset_id}/${photo.user_id}/thumbnail`
 
   const makePickerKey = (provider: string, assetId: string): string => `${provider}::${assetId}`
 
@@ -598,7 +598,7 @@ export default function MemoriesPanel({ tripId, startDate, endDate }: MemoriesPa
                           outline: isSelected ? '3px solid var(--text-primary)' : 'none',
                           outlineOffset: -3,
                         }}>
-                        <ProviderImg baseUrl={`/api/integrations/${asset.provider}/assets//${tripId}/${asset.id}/${currentUser!.id}/thumbnail`} provider={asset.provider} loading="lazy"
+                        <ProviderImg baseUrl={`/api/integrations/memories/${asset.provider}/assets/${tripId}/${asset.id}/${currentUser!.id}/thumbnail`} provider={asset.provider} loading="lazy"
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         {isSelected && (
                           <div style={{
@@ -778,9 +778,9 @@ export default function MemoriesPanel({ tripId, startDate, endDate }: MemoriesPa
                     setLightboxId(photo.asset_id); setLightboxUserId(photo.user_id); setLightboxInfo(null)
                     if (lightboxOriginalSrc) URL.revokeObjectURL(lightboxOriginalSrc)
                     setLightboxOriginalSrc('')
-                    fetchImageAsBlob(`/api/integrations/${photo.provider}/assets/${tripId}/${photo.asset_id}/${photo.user_id}/original`).then(setLightboxOriginalSrc)
+                    fetchImageAsBlob(`/api/integrations/memories/${photo.provider}/assets/${tripId}/${photo.asset_id}/${photo.user_id}/original`).then(setLightboxOriginalSrc)
                     setLightboxInfoLoading(true)
-                    apiClient.get(`/integrations/${photo.provider}/assets/${tripId}/${photo.asset_id}/${photo.user_id}/info`)
+                    apiClient.get(`/integrations/memories/${photo.provider}/assets/${tripId}/${photo.asset_id}/${photo.user_id}/info`)
                       .then(r => setLightboxInfo(r.data)).catch(() => {}).finally(() => setLightboxInfoLoading(false))
                   }}>
 

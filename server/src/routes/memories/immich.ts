@@ -1,10 +1,10 @@
 import express, { Request, Response, NextFunction } from 'express';
-import { db, canAccessTrip } from '../db/database';
-import { authenticate } from '../middleware/auth';
-import { broadcast } from '../websocket';
-import { AuthRequest } from '../types';
-import { consumeEphemeralToken } from '../services/ephemeralTokens';
-import { getClientIp } from '../services/auditLog';
+import { db, canAccessTrip } from '../../db/database';
+import { authenticate } from '../../middleware/auth';
+import { broadcast } from '../../websocket';
+import { AuthRequest } from '../../types';
+import { consumeEphemeralToken } from '../../services/ephemeralTokens';
+import { getClientIp } from '../../services/auditLog';
 import {
   getConnectionSettings,
   saveImmichSettings,
@@ -14,12 +14,11 @@ import {
   searchPhotos,
   proxyThumbnail,
   proxyOriginal,
-  isValidAssetId,
   listAlbums,
   syncAlbumAssets,
   getAssetInfo,
-} from '../services/immichService';
-import { canAccessUserPhoto } from '../services/memoriesService';
+} from '../../services/memories/immichService';
+import { canAccessUserPhoto } from '../../services/memories/helpersService';
 
 const router = express.Router();
 

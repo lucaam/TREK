@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
-import { authenticate } from '../middleware/auth';
-import { broadcast } from '../websocket';
-import { AuthRequest } from '../types';
+import { authenticate } from '../../middleware/auth';
+import { broadcast } from '../../websocket';
+import { AuthRequest } from '../../types';
 import {
     getSynologySettings,
     updateSynologySettings,
@@ -15,8 +15,8 @@ import {
     streamSynologyAsset,
     handleSynologyError,
     SynologyServiceError,
-} from '../services/synologyService';
-import { canAccessUserPhoto } from '../services/memoriesService';
+} from '../../services/memories/synologyService';
+import { canAccessUserPhoto } from '../../services/memories/helpersService';
 
 const router = express.Router();
 

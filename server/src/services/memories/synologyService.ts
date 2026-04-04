@@ -1,12 +1,11 @@
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { Response as ExpressResponse } from 'express';
-import { db } from '../db/database';
-import { decrypt_api_key, maybe_encrypt_api_key } from './apiKeyCrypto';
-import { checkSsrf } from '../utils/ssrfGuard';
-import { addTripPhotos, getAlbumIdFromLink, Selection, updateSyncTimeForAlbumLink } from './memoriesService';
-import { error } from 'node:console';
-import { th } from 'zod/locales';
+import { db } from '../../db/database';
+import { decrypt_api_key, maybe_encrypt_api_key } from '../apiKeyCrypto';
+import { checkSsrf } from '../../utils/ssrfGuard';
+import { addTripPhotos} from './unifiedService';
+import { getAlbumIdFromLink, updateSyncTimeForAlbumLink, Selection } from './helpersService';
 
 const SYNOLOGY_API_TIMEOUT_MS = 30000;
 const SYNOLOGY_PROVIDER = 'synologyphotos';
