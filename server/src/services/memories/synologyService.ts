@@ -1,7 +1,7 @@
 
 import { Response } from 'express';
 import { db } from '../../db/database';
-import { decrypt_api_key, maybe_encrypt_api_key } from '../apiKeyCrypto';
+import { decrypt_api_key, encrypt_api_key, maybe_encrypt_api_key } from '../apiKeyCrypto';
 import { checkSsrf } from '../../utils/ssrfGuard';
 import { addTripPhotos } from './unifiedService';
 import {
@@ -136,6 +136,10 @@ function _buildSynologyFormBody(params: ApiCallParams): URLSearchParams {
 
 async function _fetchSynologyJson<T>(url: string, body: URLSearchParams): Promise<ServiceResult<T>> {
     const endpoint = _buildSynologyEndpoint(url);
+    const SsrfResult = await checkSsrf(endpoint);
+    if (!SsrfResult.allowed) {
+        return fail(SsrfResult.error, 400);
+    }
     const resp = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -226,9 +230,6 @@ function _normalizeSynologyPhotoInfo(item: SynologyPhotoItem): AssetInfo {
     };
 }
 
-function _cacheSynologySID(userId: number, sid: string): void {
-    db.prepare('UPDATE users SET synology_sid = ? WHERE id = ?').run(sid, userId);
-}
 
 function _clearSynologySID(userId: number): void {
     db.prepare('UPDATE users SET synology_sid = NULL WHERE id = ?').run(userId);
@@ -239,11 +240,11 @@ function _splitPackedSynologyId(rawId: string): { id: string; cacheKey: string; 
     return { id, cacheKey: rawId, assetId: rawId };
 }
 
-
 async function _getSynologySession(userId: number): Promise<ServiceResult<string>> {
     const cachedSid = _readSynologyUser(userId, ['synology_sid']);
     if (cachedSid.success && cachedSid.data?.synology_sid) {
-        return success(cachedSid.data.synology_sid);
+        const decryptedSid = decrypt_api_key(cachedSid.data.synology_sid);
+        return success(decryptedSid);
     }
 
     const creds = _getSynologyCredentials(userId);
@@ -257,7 +258,8 @@ async function _getSynologySession(userId: number): Promise<ServiceResult<string
         return resp as ServiceResult<string>;
     }
 
-    _cacheSynologySID(userId, resp.data);
+    const encrypted = encrypt_api_key(resp.data);
+    db.prepare('UPDATE users SET synology_sid = ? WHERE id = ?').run(encrypted, userId);
     return success(resp.data);
 }
 

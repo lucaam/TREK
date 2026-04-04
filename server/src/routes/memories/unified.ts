@@ -12,6 +12,7 @@ import {
 } from '../../services/memories/unifiedService';
 import immichRouter from './immich';
 import synologyRouter from './synology';
+import { Selection } from '../../services/memories/helpersService';
 
 const router = express.Router();
 
@@ -33,13 +34,14 @@ router.post('/unified/trips/:tripId/photos', authenticate, async (req: Request, 
     const authReq = req as AuthRequest;
     const { tripId } = req.params;
     const sid = req.headers['x-socket-id'] as string;
+    const selections: Selection[] = Array.isArray(req.body?.selections) ? req.body.selections : [];
     
     const shared = req.body?.shared === undefined ? true : !!req.body?.shared;
     const result = await addTripPhotos(
         tripId,
         authReq.user.id,
         shared,
-        req.body?.selections || [],
+        selections,
         sid,
     );
     if ('error' in result) return res.status(result.error.status).json({ error: result.error.message });

@@ -9,7 +9,15 @@ import {
   mapDbError,
   Selection,
 } from './helpersService';
+import { ca } from 'zod/locales';
 
+
+
+
+function _validProvider(provider: string): boolean {
+  const validProviders = ['immich', 'synologyphotos'];
+  return validProviders.includes(provider.toLowerCase());
+}
 
 export function listTripPhotos(tripId: string, userId: number): ServiceResult<any[]> {
   const access = canAccessTrip(tripId, userId);
@@ -67,11 +75,19 @@ export function listTripAlbumLinks(tripId: string, userId: number): ServiceResul
 //-----------------------------------------------
 // managing photos in trip
 
-function _addTripPhoto(tripId: string, userId: number, provider: string, assetId: string, shared: boolean, albumLinkId?: string): boolean {
-  const result = db.prepare(
-    'INSERT OR IGNORE INTO trip_photos (trip_id, user_id, asset_id, provider, shared, album_link_id) VALUES (?, ?, ?, ?, ?, ?)'
-  ).run(tripId, userId, assetId, provider, shared ? 1 : 0, albumLinkId || null);
-  return result.changes > 0;
+function _addTripPhoto(tripId: string, userId: number, provider: string, assetId: string, shared: boolean, albumLinkId?: string): ServiceResult<boolean> {
+  if (!_validProvider(provider)) {
+    return fail(`Provider: "${provider}" is not supported`, 400);
+  }
+  try {
+    const result = db.prepare(
+      'INSERT OR IGNORE INTO trip_photos (trip_id, user_id, asset_id, provider, shared, album_link_id) VALUES (?, ?, ?, ?, ?, ?)'
+    ).run(tripId, userId, assetId, provider, shared ? 1 : 0, albumLinkId || null);
+    return success(result.changes > 0);
+  }
+  catch (error) {
+    return mapDbError(error, 'Failed to add photo to trip');
+  }
 }
 
 export async function addTripPhotos(
@@ -91,24 +107,27 @@ export async function addTripPhotos(
     return fail('No photos selected', 400);
   }
 
-  try {
-    let added = 0;
-    for (const selection of selections) {
-      for (const raw of selection.asset_ids) {
-        const assetId = String(raw || '').trim();
-        if (!assetId) continue;
-        if (_addTripPhoto(tripId, userId, selection.provider, assetId, shared, albumLinkId)) {
-          added++;
-        }
+  let added = 0;
+  for (const selection of selections) {
+    if (!_validProvider(selection.provider)) {
+      return fail(`Provider: "${selection.provider}" is not supported`, 400);
+    }
+    for (const raw of selection.asset_ids) {
+      const assetId = String(raw || '').trim();
+      if (!assetId) continue;
+      const result = _addTripPhoto(tripId, userId, selection.provider, assetId, shared, albumLinkId);
+      if (!result.success) {
+        return result as ServiceResult<{ added: number; shared: boolean }>;
+      }
+      if (result.data) {
+        added++;
       }
     }
-
-    await _notifySharedTripPhotos(tripId, userId, added);
-    broadcast(tripId, 'memories:updated', { userId }, sid);
-    return success({ added, shared });
-  } catch (error) {
-    return mapDbError(error, 'Failed to add trip photos');
   }
+
+  await _notifySharedTripPhotos(tripId, userId, added);
+  broadcast(tripId, 'memories:updated', { userId }, sid);
+  return success({ added, shared });
 }
 
 
@@ -163,7 +182,7 @@ export function removeTripPhoto(
         AND asset_id = ?
         AND provider = ?
     `).run(tripId, userId, assetId, provider);
-    
+
     broadcast(tripId, 'memories:updated', { userId }, sid);
 
     return success(true);
@@ -192,6 +211,11 @@ export function createTripAlbumLink(tripId: string, userId: number, providerRaw:
     return fail('album_id required', 400);
   }
 
+
+  if (!_validProvider(provider)) {
+    return fail(`Provider: "${provider}" is not supported`, 400);
+  }
+
   try {
     const result = db.prepare(
       'INSERT OR IGNORE INTO trip_album_links (trip_id, user_id, provider, album_id, album_name) VALUES (?, ?, ?, ?, ?)'
@@ -214,10 +238,12 @@ export function removeAlbumLink(tripId: string, linkId: string, userId: number):
   }
 
   try {
-    db.prepare('DELETE FROM trip_photos WHERE trip_id = ? AND album_link_id = ?')
-      .run(tripId, linkId);
-    db.prepare('DELETE FROM trip_album_links WHERE id = ? AND trip_id = ? AND user_id = ?')
-      .run(linkId, tripId, userId);
+    db.transaction(() => {
+      db.prepare('DELETE FROM trip_photos WHERE trip_id = ? AND album_link_id = ?')
+        .run(tripId, linkId);
+      db.prepare('DELETE FROM trip_album_links WHERE id = ? AND trip_id = ? AND user_id = ?')
+        .run(linkId, tripId, userId);
+    });
     return success(true);
   } catch (error) {
     return mapDbError(error, 'Failed to remove album link');

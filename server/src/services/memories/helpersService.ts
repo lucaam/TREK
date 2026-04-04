@@ -2,6 +2,7 @@ import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { Response } from 'express';
 import { canAccessTrip, db } from "../../db/database";
+import { checkSsrf } from '../../utils/ssrfGuard';
 
 // helpers for handling return types
 
@@ -163,6 +164,13 @@ export function updateSyncTimeForAlbumLink(linkId: string): void {
 
 export async function pipeAsset(url: string, response: Response): Promise<void> {
     try{
+
+        const SsrfResult = await checkSsrf(url);
+        if (!SsrfResult.allowed) {
+            response.status(400).json({ error: SsrfResult.error });
+            response.end();
+            return;
+        }
         const resp = await fetch(url);
     
         response.status(resp.status);
