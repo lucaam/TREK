@@ -141,7 +141,7 @@ export function ReservationModal({ isOpen, onClose, onSave, reservation, days, p
         hotel_start_day: (() => { const acc = accommodations.find(a => a.id == reservation.accommodation_id); return acc?.start_day_id || '' })(),
         hotel_end_day: (() => { const acc = accommodations.find(a => a.id == reservation.accommodation_id); return acc?.end_day_id || '' })(),
         price: meta.price || '',
-        budget_category: meta.budget_category || '',
+        budget_category: (meta.budget_category && budgetItems.some(i => i.category === meta.budget_category)) ? meta.budget_category : '',
       })
     } else {
       setForm({
