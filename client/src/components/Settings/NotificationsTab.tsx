@@ -36,13 +36,20 @@ export default function NotificationsTab(): React.ReactElement {
   const [matrix, setMatrix] = useState<PreferencesMatrix | null>(null)
   const [saving, setSaving] = useState(false)
   const [webhookUrl, setWebhookUrl] = useState('')
+  const [webhookIsSet, setWebhookIsSet] = useState(false)
   const [webhookSaving, setWebhookSaving] = useState(false)
   const [webhookTesting, setWebhookTesting] = useState(false)
 
   useEffect(() => {
     notificationsApi.getPreferences().then((data: PreferencesMatrix) => setMatrix(data)).catch(() => {})
     settingsApi.get().then((data: { settings: Record<string, unknown> }) => {
-      setWebhookUrl((data.settings?.webhook_url as string) || '')
+      const val = (data.settings?.webhook_url as string) || ''
+      if (val === '••••••••') {
+        setWebhookIsSet(true)
+        setWebhookUrl('')
+      } else {
+        setWebhookUrl(val)
+      }
     }).catch(() => {})
   }, [])
 
@@ -75,6 +82,8 @@ export default function NotificationsTab(): React.ReactElement {
     setWebhookSaving(true)
     try {
       await settingsApi.set('webhook_url', webhookUrl)
+      if (webhookUrl) setWebhookIsSet(true)
+      else setWebhookIsSet(false)
       toast.success(t('settings.webhookUrl.saved'))
     } catch {
       toast.error(t('common.error'))
@@ -84,10 +93,10 @@ export default function NotificationsTab(): React.ReactElement {
   }
 
   const testWebhookUrl = async () => {
-    if (!webhookUrl) return
+    if (!webhookUrl && !webhookIsSet) return
     setWebhookTesting(true)
     try {
-      const result = await notificationsApi.testWebhook(webhookUrl)
+      const result = await notificationsApi.testWebhook(webhookUrl || undefined)
       if (result.success) toast.success(t('settings.webhookUrl.testSuccess'))
       else toast.error(result.error || t('settings.webhookUrl.testFailed'))
     } catch {
@@ -122,7 +131,7 @@ export default function NotificationsTab(): React.ReactElement {
                 type="text"
                 value={webhookUrl}
                 onChange={e => setWebhookUrl(e.target.value)}
-                placeholder={t('settings.webhookUrl.placeholder')}
+                placeholder={webhookIsSet ? '••••••••' : t('settings.webhookUrl.placeholder')}
                 style={{ flex: 1, fontSize: 13, padding: '6px 10px', border: '1px solid var(--border-primary)', borderRadius: 6, background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
               />
               <button
@@ -134,8 +143,8 @@ export default function NotificationsTab(): React.ReactElement {
               </button>
               <button
                 onClick={testWebhookUrl}
-                disabled={!webhookUrl || webhookTesting}
-                style={{ fontSize: 12, padding: '6px 12px', background: 'transparent', color: 'var(--text-secondary)', border: '1px solid var(--border-primary)', borderRadius: 6, cursor: (!webhookUrl || webhookTesting) ? 'not-allowed' : 'pointer', opacity: (!webhookUrl || webhookTesting) ? 0.5 : 1 }}
+                disabled={(!webhookUrl && !webhookIsSet) || webhookTesting}
+                style={{ fontSize: 12, padding: '6px 12px', background: 'transparent', color: 'var(--text-secondary)', border: '1px solid var(--border-primary)', borderRadius: 6, cursor: ((!webhookUrl && !webhookIsSet) || webhookTesting) ? 'not-allowed' : 'pointer', opacity: ((!webhookUrl && !webhookIsSet) || webhookTesting) ? 0.5 : 1 }}
               >
                 {t('settings.webhookUrl.test')}
               </button>

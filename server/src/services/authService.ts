@@ -678,7 +678,7 @@ export function getAppSettings(userId: number): { error?: string; status?: numbe
   const result: Record<string, string> = {};
   for (const key of ADMIN_SETTINGS_KEYS) {
     const row = db.prepare("SELECT value FROM app_settings WHERE key = ?").get(key) as { value: string } | undefined;
-    if (row) result[key] = key === 'smtp_pass' ? '••••••••' : row.value;
+    if (row) result[key] = (key === 'smtp_pass' || key === 'admin_webhook_url') ? '••••••••' : row.value;
   }
   return { data: result };
 }
@@ -716,6 +716,7 @@ export function updateAppSettings(
       }
       if (key === 'smtp_pass' && val === '••••••••') continue;
       if (key === 'smtp_pass') val = encrypt_api_key(val);
+      if (key === 'admin_webhook_url' && val === '••••••••') continue;
       if (key === 'admin_webhook_url' && val) val = maybe_encrypt_api_key(val) ?? val;
       db.prepare("INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)").run(key, val);
     }

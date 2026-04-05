@@ -7,6 +7,10 @@ export function getUserSettings(userId: number): Record<string, unknown> {
   const rows = db.prepare('SELECT key, value FROM settings WHERE user_id = ?').all(userId) as { key: string; value: string }[];
   const settings: Record<string, unknown> = {};
   for (const row of rows) {
+    if (ENCRYPTED_SETTING_KEYS.has(row.key)) {
+      settings[row.key] = row.value ? '••••••••' : '';
+      continue;
+    }
     try {
       settings[row.key] = JSON.parse(row.value);
     } catch {

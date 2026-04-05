@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { authenticate } from '../middleware/auth';
 import { AuthRequest } from '../types';
-import { testSmtp, testWebhook } from '../services/notifications';
+import { testSmtp, testWebhook, getAdminWebhookUrl, getUserWebhookUrl } from '../services/notifications';
 import {
   getNotifications,
   getUnreadCount,
@@ -35,8 +35,14 @@ router.post('/test-smtp', authenticate, async (req: Request, res: Response) => {
 });
 
 router.post('/test-webhook', authenticate, async (req: Request, res: Response) => {
-  const { url } = req.body;
-  if (!url || typeof url !== 'string') return res.status(400).json({ error: 'url is required' });
+  const authReq = req as AuthRequest;
+  let { url } = req.body;
+  if (!url || url === '••••••••') {
+    url = getUserWebhookUrl(authReq.user.id);
+    if (!url && authReq.user.role === 'admin') url = getAdminWebhookUrl();
+    if (!url) return res.status(400).json({ error: 'No webhook URL configured' });
+  }
+  if (typeof url !== 'string') return res.status(400).json({ error: 'url must be a string' });
   try { new URL(url); } catch { return res.status(400).json({ error: 'Invalid URL' }); }
   res.json(await testWebhook(url));
 });

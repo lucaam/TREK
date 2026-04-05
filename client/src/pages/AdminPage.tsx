@@ -1258,9 +1258,9 @@ export default function AdminPage(): React.ReactElement {
                         <label className="block text-xs font-medium text-slate-500 mb-1">{t('admin.notifications.adminWebhookPanel.title')}</label>
                         <input
                           type="text"
-                          value={smtpValues.admin_webhook_url || ''}
+                          value={smtpValues.admin_webhook_url === '••••••••' ? '' : smtpValues.admin_webhook_url || ''}
                           onChange={e => setSmtpValues(prev => ({ ...prev, admin_webhook_url: e.target.value }))}
-                          placeholder="https://discord.com/api/webhooks/..."
+                          placeholder={smtpValues.admin_webhook_url === '••••••••' ? '••••••••' : 'https://discord.com/api/webhooks/...'}
                           className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                         />
                       </div>
@@ -1279,10 +1279,11 @@ export default function AdminPage(): React.ReactElement {
                     </button>
                     <button
                       onClick={async () => {
-                        if (!smtpValues.admin_webhook_url) return
+                        const url = smtpValues.admin_webhook_url === '••••••••' ? undefined : smtpValues.admin_webhook_url
+                        if (!url && smtpValues.admin_webhook_url !== '••••••••') return
                         try {
-                          await authApi.updateAppSettings({ admin_webhook_url: smtpValues.admin_webhook_url }).catch(() => {})
-                          const result = await notificationsApi.testWebhook(smtpValues.admin_webhook_url)
+                          if (url) await authApi.updateAppSettings({ admin_webhook_url: url }).catch(() => {})
+                          const result = await notificationsApi.testWebhook(url)
                           if (result.success) toast.success(t('admin.notifications.adminWebhookPanel.testSuccess'))
                           else toast.error(result.error || t('admin.notifications.adminWebhookPanel.testFailed'))
                         } catch { toast.error(t('admin.notifications.adminWebhookPanel.testFailed')) }
